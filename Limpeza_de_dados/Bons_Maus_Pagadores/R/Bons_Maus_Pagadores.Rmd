@@ -1,0 +1,118 @@
+---
+title: "Bons e Maus pagadores"
+output: html_notebook
+---
+
+
+```{m}
+Tarefa 1) Marcar *default* no mês
+Faça uma indicadora de se o cliente está em *default* em cada uma das marcações (mes_00 a mes_24).
+```
+
+
+```{r}
+propostas = read.csv("../Data/application_record.csv", na.strings="", stringsAsFactors=T)
+pg = read.csv("../Data/pagamentos_largo.csv", na.strings="", stringsAsFactors=T)
+```
+
+```{r}
+head(pg)
+```
+
+```{m}
+* Verificando se existem valores discrepantes
+```
+```{r}
+summary(pg)
+```
+```{m}
+* Alterando valores para default conforme regra estabelecida
+```
+```{r}
+names(pg)
+```
+
+```{r}
+colunas_mes <- paste0("mes_", 0:24)
+
+for (coluna in colunas_mes) {
+  pg[[coluna]] <- factor(pg[[coluna]], levels = c(levels(pg[[coluna]]), "default"))
+
+  pg[pg[[coluna]] %in% c("2", "3", "4", "5"), coluna] <- 'default'
+  pg[[coluna]] <- factor(pg[[coluna]])
+}
+```
+
+```{m}
+* Checando
+```
+```{r}
+unique(pg$mes_0)
+```
+
+
+```{r}
+summary(pg)
+```
+
+```{m}
+Tarefa 2) 'bons' e 'maus' ao longo de todos os 24 meses de desempenho¶
+Marque para cada cliente se ele teve pelo menos um episódio de default entre o mês 0 e o mês 24. Dica: o método sum() pode ajudar. Caso precise, consulte a documentação e procure pelo argumento axis, você viu outros métodos que possuem esse argumento também. Tendo o número de meses em default de cada cliente, basta marcar True para todos aqueles que possuem pelo menos 1 mês em default e False para os demais.
+```
+```{r}
+pg$tipo <- "bom"
+```
+
+
+```{r}
+for (coluna in colunas_mes) {
+  for (i in 1:nrow(pg)) {
+    if (!is.na(pg[i, coluna]) && pg[i, coluna] == "default") {
+      pg[i, "tipo"] <- "mau"
+    }
+  }
+}
+```
+
+
+```{r}
+table(pg$tipo)
+```
+```{r}
+colSums(is.na(pg))
+
+```
+
+```{m}
+Tarefas 3,4) Marcando proponentes expostos ao risco de crédito e Consolidando as informações
+
+Marcando proponentes que se tornaram tomadores: lembre-se de que clientes que não adquiriram o cartão devem ser desconsiderados. A base de pagamentos possui apenas clientes que adquiriram cartão de crédito, então você pode selecionar somente os clientes da base de propostas que se encontram na base de pagamentos.
+```
+
+```{r}
+head(propostas)
+```
+
+```{r}
+summary(propostas)
+```
+
+```{r}
+colSums(is.na(propostas))
+```
+```{r}
+merged_df <- merge(propostas, pg[c("ID", "tipo")], by = "ID", all.x = FALSE, all.y = FALSE)
+```
+```{r}
+names(merged_df)
+```
+```{m}
+Tarefa 5) Verificando
+Faça uma contagem dos valores do default que você construiu.
+```
+```{r}
+table(merged_df$tipo)
+```
+
+
+
