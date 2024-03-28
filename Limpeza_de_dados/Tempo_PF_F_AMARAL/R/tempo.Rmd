@@ -1,0 +1,103 @@
+---
+title: "Tempo"
+output: html_notebook
+---
+
+```{m}
+Aparência: sol, nublado, chuva
+Temperatura: -130 ~ 130 F
+Umidade: 0 ~ 100
+Jogar: sim/nao
+Tratar valores NAs
+
+```
+
+
+```{r}
+df = read.csv("../Data/tempo.csv", sep = ";", na.strings="", stringsAsFactors=T)
+head(df)
+```
+
+```{r}
+nrow(df)
+```
+
+```{r}
+summary(df)
+```
+```{m}
+# Identificado: 
+* temperaturas irregulares
+* Aparência incorreta
+* Umidade irregular
+* Nulos na coluna "Vento"
+```
+
+```{r}
+table(df$Temperatura)
+```
+
+```{r}
+boxplot(df$Temperatura,outline = F)
+```
+
+```{r}
+table(df$Umidade)
+```
+```{r}
+boxplot(df$Umidade)
+```
+```{m}
+* Realizando ajustes
+```
+
+```{r}
+df[df$Aparencia == "menos",]
+```
+```{m}
+* Comparando as outras colunas para ver qual a subistituição mais adequada visto que Aparencia é bimododal
+```
+
+```{r}
+print(median(df[df$Aparencia == "chuva",]$Umidade,na.rm = T))
+print(median(df[df$Aparencia == "chuva",]$Temperatura))
+```
+
+```{r}
+print(median(df[df$Aparencia == "sol",]$Umidade,na.rm = T))
+median(df[df$Aparencia == "sol",]$Temperatura)
+
+```
+```{r}
+print(median(df[df$Aparencia == "nublado",]$Umidade,na.rm = T))
+median(df[df$Aparencia == "nublado",]$Temperatura)
+```
+```{m}
+* Apesa da umidade estar equivalente para dias de sol e chuva a menor mediana foi nos dias de chuva, sendo assim irei subistituir por dia de chuva
+```
+
+```{r}
+df[df$Aparencia == "menos", ]$Aparencia = "chuva"
+df$Aparencia = factor(df$Aparencia)
+table(df$Aparencia)
+```
+
+```{m}
+Temperaturas e umidades discrepantes serão subistituidas pela mediada
+```
+```{r}
+df[df$Temperatura > 130, ]$Temperatura = median(df$Temperatura,na.rm = T)
+df[df$Umidade > 100 & !is.na(df$Umidade), ]$Umidade = median(df$Umidade,na.rm = T)
+df[is.na(df$Umidade),]$Umidade = median(df$Umidade,na.rm = T)
+df[is.na(df$Vento),]$Vento = "FALSO"
+df$Vento = factor(df$Vento)
+```
+```{r}
+summary(df)
+```
+
+
+
+
+
+
